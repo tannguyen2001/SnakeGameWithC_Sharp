@@ -21,7 +21,9 @@ namespace SnakeGame.Game
         public int WIDTH;
         public int HEIGHT;
         public Point[] snake;
+        public Point apple;
         public Direction direction;
+        Point prevTail;
         public delegate void ConsoleKeyEventHandler(ConsoleKeyInfo keyInfo);
         public event ConsoleKeyEventHandler KeyPressEvent; 
 
@@ -84,10 +86,27 @@ namespace SnakeGame.Game
         }
 
         /// <summary>
+        /// tạo ngẫu nhiên mồi, ở đây gọi là quả táo
+        /// </summary>
+        public void GenApple()
+        {
+            Random rnd = new Random();
+            int x = rnd.Next((WIDTH - 1));
+            int y = rnd.Next((HEIGHT - 1));
+            apple = new Point(x, y);
+            // Sau khi có tọa độ quả táo thì vẽ lên màn hình
+            Console.SetCursorPosition(x, y);
+            Console.Write(".");
+        }
+            
+        /// <summary>
         /// khi con rắn di chuyển
         /// </summary>
         public void Move()
         {
+            // lưu phần đuôi cũ lại
+            prevTail = snake.Last();
+            // code gores here
             for (int i = snake.Length - 1; i > 0; i--)
                 snake[i] = snake[i - 1];
             if (direction == Direction.Up)
@@ -100,6 +119,18 @@ namespace SnakeGame.Game
                 snake[0].X += 1;
         }
 
+        /// <summary>
+        ///  Vẽ đầu mới
+        /// </summary>
+        public void DrawHeadnTail()
+        {
+            Console.SetCursorPosition(snake[0].X, snake[0].Y);
+            Console.Write("*");
+            // vẽ phần đầu mới
+            Point tail = snake.Last();
+            Console.SetCursorPosition(prevTail.X, prevTail.Y);
+            Console.Write(" "); // xóa phần đuôi cũ đi
+        }
 
         /// <summary>
         /// Nhận sự hiện khi nhấn phím để set hướng di chuyển
