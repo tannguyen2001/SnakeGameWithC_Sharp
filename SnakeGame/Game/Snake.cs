@@ -25,7 +25,7 @@ namespace SnakeGame.Game
         private Direction direction;
         private int score;
         private Point prevTail;
-        private delegate void ConsoleKeyEventHandler(ConsoleKeyInfo keyInfo);
+        private delegate void ConsoleKeyEventHandler();
         private event ConsoleKeyEventHandler KeyPressEvent;
 
         private static Snake instanceSnake;
@@ -84,7 +84,7 @@ namespace SnakeGame.Game
             for (int i = 0; i < WIDTH; i++)
             {
                 Console.Write("=");
-            } 
+            }
             Console.SetCursorPosition(0, HEIGHT);
             for (int i = 0; i < WIDTH; i++)
             {
@@ -130,8 +130,8 @@ namespace SnakeGame.Game
         private Point NewRandomPoint()
         {
             Random rnd = new Random();
-            int x = rnd.Next((WIDTH - 2));
-            int y = rnd.Next((HEIGHT - 2));
+            int x = rnd.Next((WIDTH - 1)) + 1;
+            int y = rnd.Next((HEIGHT - 1)) + 1;
             return new Point(x, y);
         }
 
@@ -163,7 +163,8 @@ namespace SnakeGame.Game
         private void Move()
         {
             // lưu phần đuôi cũ lại
-            prevTail = snake.Last();
+            prevTail = snake[snake.Length - 1];
+
             // code gores here
             for (int i = snake.Length - 1; i > 0; i--)
                 snake[i] = snake[i - 1];
@@ -182,10 +183,12 @@ namespace SnakeGame.Game
         /// </summary>
         private void DrawHeadnTail()
         {
+            //di chuyển
+            this.Move();
             Console.SetCursorPosition(snake[0].X, snake[0].Y);
             Console.Write("*");
             // vẽ phần đầu mới
-            Point tail = snake.Last();
+            Point tail = snake[snake.Length - 1];
             Console.SetCursorPosition(prevTail.X, prevTail.Y);
             Console.Write(" "); // xóa phần đuôi cũ đi
         }
@@ -194,13 +197,11 @@ namespace SnakeGame.Game
         /// Nhận sự hiện khi nhấn phím để set hướng di chuyển
         /// </summary>
         /// <param name="keyInfo"></param>
-        private void HandleKeyPressEvent(ConsoleKeyInfo keyInfo)
+        private void HandleKeyPressEvent()
         {
             // Đọc phím vừa nhấn
-            char ch = Console.ReadKey(true).KeyChar;
-
-            // lower để nhận được cả in hoa và in thường
-            ch = char.ToLower(ch);
+            ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+            char ch = char.ToLower(keyInfo.KeyChar);
 
             switch (ch)
             {
@@ -266,15 +267,12 @@ namespace SnakeGame.Game
             {
                 if (Console.KeyAvailable)
                 {
-                    ConsoleKeyInfo keyInfo = Console.ReadKey(true);
-                    // Raise the KeyPressEvent event
-                    KeyPressEvent?.Invoke(keyInfo);
+                    KeyPressEvent?.Invoke();
                 }
-                //di chuyển
-                Move();
                 // nếu đâm đầu vào tường hoặc nếu tự cắn vào người
                 if (IsHitWall() || IsBiteItself())
                 {
+                    Console.Clear();
                     Console.Write(String.Format("Game over! Your score is {0}", score));
                     break;
                 }
@@ -284,7 +282,8 @@ namespace SnakeGame.Game
                 DrawSnake();
                 //vẽ mồi hiện tại
                 GenApple(false);
-
+                //rắn liên tục di chuyển
+                DrawHeadnTail();
                 //nếu rắn ăn mồi
                 if (IsEatApple())
                 {
@@ -294,7 +293,6 @@ namespace SnakeGame.Game
                 }
                 // tốc độ của con rắn
                 Thread.Sleep(500 / level); // set ở đây mặc định là 0.5s
-                // Sau khi xong thì xóa để vẽ lần tiếp theo
                 Console.Clear();
             }
         }
