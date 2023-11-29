@@ -18,19 +18,20 @@ namespace SnakeGame.Game
 
     public class Snake
     {
-        public int WIDTH;
-        public int HEIGHT;
-        public Point[] snake;
-        public Point apple;
-        public Direction direction;
-        Point prevTail;
-        public delegate void ConsoleKeyEventHandler(ConsoleKeyInfo keyInfo);
-        public event ConsoleKeyEventHandler KeyPressEvent; 
+        private int WIDTH;
+        private int HEIGHT;
+        private Point[] snake;
+        private Point apple;
+        private Direction direction;
+        private int score;
+        private Point prevTail;
+        private delegate void ConsoleKeyEventHandler(ConsoleKeyInfo keyInfo);
+        private event ConsoleKeyEventHandler KeyPressEvent; 
 
         public Snake()
         {
-            WIDTH = 400;
-            HEIGHT = 300;
+            WIDTH = 30;
+            HEIGHT = 10;
             this.snake =new Point[]{
                 new Point(WIDTH/2 + 2, HEIGHT /2),
                 new Point(WIDTH/2 + 1, HEIGHT /2),
@@ -38,18 +39,19 @@ namespace SnakeGame.Game
                 new Point(WIDTH/2 - 1, HEIGHT /2),
                 new Point(WIDTH/2 - 2, HEIGHT /2),
             };
-            direction = Direction.Right;
-        }
 
-        public Snake(Point[] snake)
-        {
-            this.snake = snake;
+            Random rnd = new Random();
+            int x = rnd.Next((WIDTH - 1));
+            int y = rnd.Next((HEIGHT - 1));
+            apple = new Point(x, y);
+            direction = Direction.Right;
+            score = 0;
         }
 
         /// <summary>
         /// vẽ con rắn lên màn hình
         /// </summary>
-        public void DrawSnake()
+        private void DrawSnake()
         {
             foreach (var point in snake)
             {
@@ -61,7 +63,7 @@ namespace SnakeGame.Game
         /// <summary>
         /// Phần màn hình để chơi
         /// </summary>
-        public void DrawBox()
+        private void DrawBox()
         {
             // WIDTH và HEIGHT là kích thước hộp được đặt trước
             for (int i = 0; i < WIDTH; i++)
@@ -88,21 +90,48 @@ namespace SnakeGame.Game
         /// <summary>
         /// tạo ngẫu nhiên mồi, ở đây gọi là quả táo
         /// </summary>
-        public void GenApple()
+        private void GenApple(bool isNewApple = true)
         {
-            Random rnd = new Random();
-            int x = rnd.Next((WIDTH - 1));
-            int y = rnd.Next((HEIGHT - 1));
-            apple = new Point(x, y);
-            // Sau khi có tọa độ quả táo thì vẽ lên màn hình
-            Console.SetCursorPosition(x, y);
-            Console.Write(".");
-        }
+            if(isNewApple)
+            {
+                Random rnd = new Random();
+                int x = rnd.Next((WIDTH - 1));
+                int y = rnd.Next((HEIGHT - 1));
+                apple = new Point(x, y);
+                // Sau khi có tọa độ quả táo thì vẽ lên màn hình
+                Console.SetCursorPosition(x, y);
+                Console.Write("*");
+            }
+            else
+            {
+                Console.SetCursorPosition(apple.X, apple.Y);
+                Console.Write("*");
+            }
             
+        }
+
+        /// <summary>
+        /// Táo đã ăn chưa
+        /// </summary>
+        /// <returns></returns>
+        private bool IsEatApple()
+        {
+            this.score += 1;
+            return snake[0].X == apple.X && snake[0].Y == apple.Y;
+        }
+
+        /// <summary>
+        /// Nếu đã ăn táo thì tăng chiều dài rắn lên
+        /// </summary>
+        private void Growing()
+        {
+            snake = snake.Concat(new Point[] { prevTail }).ToArray();
+        }
+
         /// <summary>
         /// khi con rắn di chuyển
         /// </summary>
-        public void Move()
+        private void Move()
         {
             // lưu phần đuôi cũ lại
             prevTail = snake.Last();
@@ -122,7 +151,7 @@ namespace SnakeGame.Game
         /// <summary>
         ///  Vẽ đầu mới
         /// </summary>
-        public void DrawHeadnTail()
+        private void DrawHeadnTail()
         {
             Console.SetCursorPosition(snake[0].X, snake[0].Y);
             Console.Write("*");
@@ -136,7 +165,7 @@ namespace SnakeGame.Game
         /// Nhận sự hiện khi nhấn phím để set hướng di chuyển
         /// </summary>
         /// <param name="keyInfo"></param>
-        public void HandleKeyPressEvent(ConsoleKeyInfo keyInfo)
+        private void HandleKeyPressEvent(ConsoleKeyInfo keyInfo)
         {
             // Đọc phím vừa nhấn
             char ch = Console.ReadKey(true).KeyChar;
@@ -180,7 +209,7 @@ namespace SnakeGame.Game
         /// Kiểm tra xem con rắn có đụng tường không
         /// </summary>
         /// <returns></returns>
-        public bool IsHitWall()
+        private bool IsHitWall()
         {
             return snake[0].X == 0 || snake[0].Y == 0 || snake[0].X == WIDTH || snake[0].Y == HEIGHT;
         }
@@ -219,11 +248,25 @@ namespace SnakeGame.Game
                     break;
                 // nếu đâm đầu vào tường
                 if (IsHitWall())
+                {
+                    Console.Write(String.Format("Game over! Your score is {0}", score));
                     break;
+                }
                 //vẽ hộp chơi
                 DrawBox();
                 //vẽ con rắn
                 DrawSnake();
+                
+                //vẽ mồi
+                GenApple(false);
+
+                //nếu rắn ăn mồi
+                if (IsEatApple())
+                {
+                    Growing();
+                    //mồi mới
+                    GenApple();
+                }
 
                 // tốc độ của con rắn
                 Thread.Sleep(500); // set ở đây mặc định là 0.5s

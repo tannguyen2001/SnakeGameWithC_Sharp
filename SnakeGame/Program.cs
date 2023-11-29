@@ -1,2 +1,7 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿
+
+using SnakeGame.Game;
+
+Snake game = new Snake();
+game.PlayGame();
+
