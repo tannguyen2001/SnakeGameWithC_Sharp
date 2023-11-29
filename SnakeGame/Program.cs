@@ -2,6 +2,4 @@
 
 using SnakeGame.Game;
 
-Snake game = new Snake();
-game.PlayGame();
-
+Snake.GameSnake.PlayGame(4);

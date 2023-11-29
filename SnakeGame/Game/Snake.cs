@@ -26,9 +26,28 @@ namespace SnakeGame.Game
         private int score;
         private Point prevTail;
         private delegate void ConsoleKeyEventHandler(ConsoleKeyInfo keyInfo);
-        private event ConsoleKeyEventHandler KeyPressEvent; 
+        private event ConsoleKeyEventHandler KeyPressEvent;
 
-        public Snake()
+        private static Snake instanceSnake;
+
+        private static readonly object lock_instance = new object ();
+        public static Snake GameSnake
+        {
+            get
+            {
+                lock (lock_instance)
+                {
+                    if (instanceSnake == null)
+                    {
+                        instanceSnake = new Snake();
+                    }
+                    return instanceSnake;
+
+                }
+            }
+        }
+
+        private Snake()
         {
             WIDTH = 30;
             HEIGHT = 10;
@@ -39,11 +58,7 @@ namespace SnakeGame.Game
                 new Point(WIDTH/2 - 1, HEIGHT /2),
                 new Point(WIDTH/2 - 2, HEIGHT /2),
             };
-
-            Random rnd = new Random();
-            int x = rnd.Next((WIDTH - 1));
-            int y = rnd.Next((HEIGHT - 1));
-            apple = new Point(x, y);
+            apple = NewRandomPoint();
             direction = Direction.Right;
             score = 0;
         }
@@ -94,12 +109,10 @@ namespace SnakeGame.Game
         {
             if(isNewApple)
             {
-                Random rnd = new Random();
-                int x = rnd.Next((WIDTH - 1));
-                int y = rnd.Next((HEIGHT - 1));
-                apple = new Point(x, y);
+                
+                apple = NewRandomPoint();
                 // Sau khi có tọa độ quả táo thì vẽ lên màn hình
-                Console.SetCursorPosition(x, y);
+                Console.SetCursorPosition(apple.X, apple.Y);
                 Console.Write("*");
             }
             else
@@ -111,13 +124,29 @@ namespace SnakeGame.Game
         }
 
         /// <summary>
+        /// tạo vị trí ngấu nhiên
+        /// </summary>
+        /// <returns></returns>
+        private Point NewRandomPoint()
+        {
+            Random rnd = new Random();
+            int x = rnd.Next((WIDTH - 2));
+            int y = rnd.Next((HEIGHT - 2));
+            return new Point(x, y);
+        }
+
+        /// <summary>
         /// Táo đã ăn chưa
         /// </summary>
         /// <returns></returns>
         private bool IsEatApple()
         {
-            this.score += 1;
-            return snake[0].X == apple.X && snake[0].Y == apple.Y;
+            bool isEatApple = snake[0].X == apple.X && snake[0].Y == apple.Y;
+            if(isEatApple)
+            {
+                this.score += 1;
+            }
+            return isEatApple;
         }
 
         /// <summary>
@@ -228,9 +257,9 @@ namespace SnakeGame.Game
         }
 
         /// <summary>
-        /// Khởi động game
+        /// Khởi động game, truyền vào level games
         /// </summary>
-        public void PlayGame()
+        public void PlayGame(int level)
         {
             KeyPressEvent += HandleKeyPressEvent;
             while (true)
@@ -243,11 +272,8 @@ namespace SnakeGame.Game
                 }
                 //di chuyển
                 Move();
-                // nếu tự cắn vào người
-                if (IsBiteItself())
-                    break;
-                // nếu đâm đầu vào tường
-                if (IsHitWall())
+                // nếu đâm đầu vào tường hoặc nếu tự cắn vào người
+                if (IsHitWall() || IsBiteItself())
                 {
                     Console.Write(String.Format("Game over! Your score is {0}", score));
                     break;
@@ -256,23 +282,22 @@ namespace SnakeGame.Game
                 DrawBox();
                 //vẽ con rắn
                 DrawSnake();
-                
-                //vẽ mồi
+                //vẽ mồi hiện tại
                 GenApple(false);
 
                 //nếu rắn ăn mồi
                 if (IsEatApple())
                 {
                     Growing();
-                    //mồi mới
+                    //vẽ mồi mới
                     GenApple();
                 }
-
                 // tốc độ của con rắn
-                Thread.Sleep(500); // set ở đây mặc định là 0.5s
+                Thread.Sleep(500 / level); // set ở đây mặc định là 0.5s
                 // Sau khi xong thì xóa để vẽ lần tiếp theo
                 Console.Clear();
             }
         }
+
     }
 }
