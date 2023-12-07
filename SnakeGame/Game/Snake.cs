@@ -80,26 +80,27 @@ namespace SnakeGame.Game
         /// </summary>
         private void DrawBox()
         {
-            // WIDTH và HEIGHT là kích thước hộp được đặt trước
+             //WIDTH và HEIGHT là kích thước hộp được đặt trước
             for (int i = 0; i < WIDTH; i++)
             {
                 Console.Write("=");
             }
             Console.SetCursorPosition(0, HEIGHT);
-            for (int i = 0; i < WIDTH; i++)
+            for (int i = 0; i <= WIDTH; i++)
             {
                 Console.Write("=");
             }
-            for (int i = 1; i < HEIGHT; i++)
+            for (int i = 0; i < HEIGHT; i++)
             {
                 Console.SetCursorPosition(0, i);
                 Console.Write("=");
             }
-            for (int i = 1; i < HEIGHT; i++)
+            for (int i = 0; i < HEIGHT; i++)
             {
                 Console.SetCursorPosition(WIDTH, i);
                 Console.Write("=");
             }
+
         }
 
         /// <summary>
@@ -201,36 +202,38 @@ namespace SnakeGame.Game
         {
             // Đọc phím vừa nhấn
             ConsoleKeyInfo keyInfo = Console.ReadKey(true);
-            char ch = char.ToLower(keyInfo.KeyChar);
-
-            switch (ch)
+            switch (keyInfo.Key)
             {
-                case 'a':
-                    if(direction != Direction.Right)
+                case ConsoleKey.A:
+                case ConsoleKey.LeftArrow:
+                    if (direction != Direction.Right)
                     {
                         direction = Direction.Left;
                     }
                     break;
-                case 'w':
-                    if(direction != Direction.Down)
+                case ConsoleKey.W:
+                case ConsoleKey.UpArrow:
+                    if (direction != Direction.Down)
                     {
                         direction = Direction.Up;
                     }
                     break;
-                case 's':
+                case ConsoleKey.S:
+                case ConsoleKey.DownArrow:
                     if (direction != Direction.Up)
                     {
                         direction = Direction.Down;
                     }
                     break;
-                case 'd':
+                case ConsoleKey.D:
+                case ConsoleKey.RightArrow:
                     if (direction != Direction.Left)
                     {
                         direction = Direction.Right;
                     }
                     break;
-                case 'q': // Quit game
-                          // Handle game exit logic if needed
+                case ConsoleKey.Q: // Quit game
+                                   // Handle game exit logic if needed
                     break;
             }
         }
@@ -263,6 +266,10 @@ namespace SnakeGame.Game
         public void PlayGame(int level)
         {
             KeyPressEvent += HandleKeyPressEvent;
+            //vẽ hộp chơi
+            DrawBox();
+            //vẽ con rắn
+            DrawSnake();
             while (true)
             {
                 if (Console.KeyAvailable)
@@ -276,10 +283,6 @@ namespace SnakeGame.Game
                     Console.Write(String.Format("Game over! Your score is {0}", score));
                     break;
                 }
-                //vẽ hộp chơi
-                DrawBox();
-                //vẽ con rắn
-                DrawSnake();
                 //vẽ mồi hiện tại
                 GenApple(false);
                 //rắn liên tục di chuyển
@@ -293,7 +296,7 @@ namespace SnakeGame.Game
                 }
                 // tốc độ của con rắn
                 Thread.Sleep(500 / level); // set ở đây mặc định là 0.5s
-                Console.Clear();
+                //Console.Clear();
             }
         }
 
